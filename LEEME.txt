@@ -1,0 +1,63 @@
+GORILLA GRADING · PÁGINA DE PRÓXIMAMENTE
+========================================
+
+QUÉ HAY AQUÍ
+
+  index.html    La página completa. CSS, JavaScript y logo van
+                dentro del propio archivo: no necesita nada más.
+
+
+CÓMO SUBIRLA
+
+  IONOS      Panel → Alojamiento → Administrador de archivos
+             Sube index.html a la carpeta raíz (suele ser
+             public_html o www)
+
+  Cloudflare Pages / Netlify
+             Arrastra el archivo a la zona de subida
+
+  FTP        Déjalo en public_html/ o www/
+
+  El nombre TIENE que ser index.html para que sea lo primero
+  que se ve al entrar en el dominio.
+
+
+PARA QUE LOS CORREOS SE GUARDEN DE VERDAD
+
+  Ahora mismo el formulario valida y responde, pero NO guarda
+  nada. Una página estática no puede hacerlo sola.
+
+  1. Crea una cuenta en formspree.io (gratis hasta 50 al mes)
+  2. Crea un formulario nuevo y copia la dirección que te dan,
+     del tipo  https://formspree.io/f/xxxxxxx
+  3. Abre index.html con el Bloc de notas o cualquier editor
+  4. Busca esta línea, cerca del final:
+
+         const DESTINO = "";
+
+  5. Pega la dirección dentro de las comillas:
+
+         const DESTINO = "https://formspree.io/f/xxxxxxx";
+
+  6. Guarda y vuelve a subir el archivo
+
+  Alternativas a Formspree:
+    · Netlify Forms  — si alojas ahí, añade data-netlify="true"
+                       al <form> y no hace falta DESTINO
+    · Buttondown     — lista de correo de verdad
+    · Mailchimp      — usa su formulario incrustado
+
+
+TIPOGRAFÍA
+
+  La página carga Nunito Sans y JetBrains Mono desde Google
+  Fonts. Necesita conexión a internet para verse correctamente,
+  pero eso ya lo tiene cualquier visitante.
+
+
+COLORES DE MARCA
+
+  Verde         #61B663
+  Verde oscuro  #3B803C
+  Gris de fondo #454545
+  Tinta         #0E1512

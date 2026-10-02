@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gorilla Grading</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Gorilla Grading · Grading for collectible cards. Madrid.">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4NCA5MCI+PHBhdGggZD0iTTggMTZBOCA4IDAgMCAxIDE2IDhoNTJhOCA4IDAgMCAxIDggOHYzNGMwIDE2LTE2IDI4LTM0IDM0QzI0IDc4IDggNjYgOCA1MFoiIGZpbGw9IiMwRTE1MTIiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0Miw0NCkiPjxwYXRoIGQ9Ik0xMyAtOUExNS41IDE1LjUgMCAxIDAgMTUuNSAzSDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzg5REI3RiIgc3Ryb2tlLXdpZHRoPSI3LjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L3N2Zz4=">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,400&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Gris pálido, muy ligeramente verdoso: el fondo no compite
+     con el verde de marca y hace de neutro cálido. */
+  /* Gris neutro puro. Sin matiz verde: el verde queda solo
+     para el logo y los acentos. */
+  --forest:#3B803C; --mint:#61B663; --ink:#454545;
+  --bone:#F0F1F2; --dim:#8E9294;
+  --display:"Nunito Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",monospace;
+  --ease:cubic-bezier(.22,.68,.28,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--ink); color:var(--bone);
+  font-family:var(--display); -webkit-font-smoothing:antialiased;
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  gap:clamp(30px,6vw,90px); padding:28px 28px 60px; overflow:auto; text-align:center;
+}
+@media(max-width:900px){ body{flex-direction:column; gap:0; padding-bottom:40px} }
+
+/* Franja verde arriba + retícula muy tenue. Un halo verde suave
+   detrás, sin movimiento: da profundidad sin parecer un degradado. */
+
+/* Retícula: se difumina hacia el centro con una máscara, así las
+   líneas no cruzan por detrás del texto. */
+body::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  /* fondo liso: sin retícula ni degradados */
+}
+
+/* Halo verde: fuera del centro, apoyado abajo a la izquierda,
+   y mucho más leve que antes. */
+.glow{display:none}
+.glow-2{display:none}
+@keyframes breathe{
+  0%,100%{transform:translate3d(0,0,0) scale(1); opacity:1}
+  50%    {transform:translate3d(3%,-3%,0) scale(1.14); opacity:.68}
+}
+
+/* Escudo: flota apenas y refleja al pasar el ratón */
+.logo{will-change:transform}
+.logo-hold{
+  display:block; width:78px; margin:0 auto 18px;
+  animation:rise .8s var(--ease) backwards, float 5s ease-in-out 1s infinite;
+  transition:transform .5s cubic-bezier(.22,.68,.28,1);
+}
+/* El escudo flota y bascula: más recorrido y una ligera rotación,
+   para que no parezca que solo sube y baja. */
+@keyframes float{
+  0%,100%{transform:translateY(-9px) rotate(-1.6deg)}
+  25%    {transform:translateY(0)    rotate(0.8deg)}
+  50%    {transform:translateY(9px)  rotate(1.6deg)}
+  75%    {transform:translateY(0)    rotate(-0.8deg)}
+}
+
+/* La línea bajo el nombre se dibuja al cargar */
+.rule{transform-origin:center; animation:rise .8s var(--ease) .2s backwards, draw 1s var(--ease) .5s backwards}
+@keyframes draw{from{transform:scaleX(0)} to{transform:scaleX(1)}}
+
+/* El texto de la tagline entra letra a letra */
+.tagline span{display:inline-block; animation:up .5s var(--ease) backwards}
+@keyframes up{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+
+.card{position:relative; z-index:2; width:100%; max-width:400px; flex-shrink:0;
+  display:flex; flex-direction:column; align-items:center}
+@keyframes rise{from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none}}
+
+.logo{width:78px; height:84px; display:block}
+.logo .shield{fill:var(--mint)}
+
+
+h1{font-size:34px; font-weight:800; letter-spacing:-.025em; margin:0; line-height:1;
+  animation:rise .8s var(--ease) .08s backwards}
+.tagline{font-family:var(--display); font-weight:500; font-size:12px; letter-spacing:.3em;
+  text-transform:uppercase; color:var(--mint); margin:6px 0 0;
+  /* el letter-spacing deja un hueco tras la última letra que
+     descentra el texto: se compensa empujándolo esa misma medida */
+  text-indent:.3em;
+  animation:rise .8s var(--ease) .14s backwards}
+.rule{height:1px; width:44px; margin:20px auto; background:var(--mint); opacity:.55;
+  animation:rise .8s var(--ease) .2s backwards}
+.claim{font-size:14.5px; color:#B8BCBE; line-height:1.6; margin:0 auto; max-width:34ch;
+  animation:rise .8s var(--ease) .26s backwards}
+.claim b{color:var(--bone); font-weight:600}
+
+/* ---------- casillas de código ---------- */
+.gate{margin-top:28px; animation:rise .8s var(--ease) .34s backwards}
+.gate-lbl{font-family:var(--display); font-weight:500; font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:#8E9294; margin:0 0 12px; text-indent:.16em}
+
+@keyframes shake{
+  0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)}
+  40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(3px)}
+}
+
+.msg{font-family:var(--display); font-size:12px; letter-spacing:.02em; text-indent:.02em; margin-top:12px;
+  min-height:16px; color:#8E9294; transition:color .25s}
+.msg.err{color:#E86A5A}
+.msg.ok{color:var(--mint)}
+
+.foot{margin-top:34px; font-family:var(--display); font-size:12px; letter-spacing:.02em; text-indent:.02em; color:#3E4A44; animation:rise .8s var(--ease) .42s backwards}
+
+
+/* ---------- hecho con amor ---------- */
+.madewith{
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  font-family:var(--display); font-size:12px; color:#8E9294; margin:8px 0 0;
+  animation:rise .8s var(--ease) .48s backwards;
+}
+.heart{display:inline-flex; width:15px; height:14px; flex-shrink:0}
+.heart svg{width:100%; height:100%; display:block; fill:#D41A22;
+  animation:beat 2s cubic-bezier(.3,.7,.3,1) infinite; transform-origin:center}
+/* Latido de verdad: dos golpes seguidos, más amplios. */
+@keyframes beat{
+  0%,58%,100%{transform:scale(1)}
+  64%{transform:scale(1.42)}
+  70%{transform:scale(1.04)}
+  76%{transform:scale(1.3)}
+  84%{transform:scale(1)}
+}
+
+/* ---------- escena · antes y después ----------
+   Ciclo de 24 s: se dibujan las cartas sueltas, corre el análisis
+   por sus tres canales, baja la flecha con los cuatro colores, y
+   se dibuja la carcasa con su nota y su certificado. */
+.scene{
+  position:relative; z-index:1; flex-shrink:0;
+  width:min(27vw,258px); pointer-events:none;
+}
+@media(max-width:900px){ .scene{width:min(58vw,226px); margin-top:24px} }
+.scene svg{width:100%; height:auto; display:block}
+
+/* ══ el trazo a mano se dibuja solo ══ */
+.d-duda path, .d-raw path, .d-raw rect, .d-raw circle,
+.d-flecha path, .d-slab path, .d-slab rect, .d-slab circle{
+  stroke-dasharray:var(--l,700); stroke-dashoffset:var(--l,700);
+}
+.d-duda path{animation:traza 24s var(--ease) infinite}
+.d-raw path, .d-raw rect, .d-raw circle{animation:traza 24s var(--ease) .6s infinite}
+.d-flecha path{animation:traza 24s var(--ease) infinite}
+.d-slab path, .d-slab rect, .d-slab circle{animation:trazaB 24s var(--ease) infinite}
+@keyframes traza{
+  0%      {stroke-dashoffset:var(--l,700)}
+  10%,92% {stroke-dashoffset:0}
+  97%,100%{stroke-dashoffset:var(--l,700)}
+}
+/* la flecha se traza justo antes de la carcasa */
+.d-flecha path{animation-delay:0s}
+.d-flecha .f1{animation:trazaF 24s var(--ease) infinite}
+.d-flecha .f2{animation:trazaF 24s var(--ease) .25s infinite}
+.d-flecha .f3{animation:trazaF 24s var(--ease) .45s infinite}
+@keyframes trazaF{
+  0%,52%  {stroke-dashoffset:var(--l,120)}
+  60%,92% {stroke-dashoffset:0}
+  97%,100%{stroke-dashoffset:var(--l,120)}
+}
+@keyframes trazaB{
+  0%,62%  {stroke-dashoffset:var(--l,700)}
+  76%,92% {stroke-dashoffset:0}
+  97%,100%{stroke-dashoffset:var(--l,700)}
+}
+
+/* las cartas sueltas se mecen, como papel */
+.d-raw{transform-origin:150px 170px; animation:mece 8s ease-in-out infinite}
+@keyframes mece{
+  0%,100%{transform:rotate(-.8deg) translateY(-2px)}
+  50%    {transform:rotate(.8deg)  translateY(2px)}
+}
+/* el garabato tiembla un poco más: es la duda */
+.d-duda{transform-origin:70px 40px; animation:tiembla 5s ease-in-out infinite}
+@keyframes tiembla{
+  0%,100%{transform:rotate(-2deg) scale(1)}
+  50%    {transform:rotate(2deg)  scale(1.05)}
+}
+.d-int text{opacity:0; animation:interro 24s var(--ease) infinite}
+.d-int .i2{animation-delay:.3s}
+.d-int .i3{animation-delay:.6s}
+@keyframes interro{
+  0%,12%  {opacity:0; transform:translateY(6px)}
+  16%,48% {opacity:1; transform:none}
+  54%,100%{opacity:0}
+}
+
+/* ══ el análisis, sobre la carta ══ */
+.an1{animation:vA 24s linear infinite}
+.an2{animation:vB 24s linear infinite}
+.an3{animation:vC 24s linear infinite}
+@keyframes vA{0%,16%{opacity:0} 19%,27%{opacity:1} 30%,100%{opacity:0}}
+@keyframes vB{0%,30%{opacity:0} 33%,39%{opacity:1} 42%,100%{opacity:0}}
+@keyframes vC{0%,42%{opacity:0} 44%,50%{opacity:1} 53%,100%{opacity:0}}
+
+.an1-s{animation:baja 24s linear infinite}
+@keyframes baja{
+  0%,17%  {transform:translateY(0);     opacity:0}
+  19%     {opacity:1}
+  25%     {transform:translateY(146px); opacity:1}
+  27%,100%{transform:translateY(146px); opacity:0}
+}
+.an1-v{transform-origin:top; animation:crece 24s var(--ease) infinite}
+@keyframes crece{0%,24%{transform:scaleY(0)} 26%,28%{transform:scaleY(1)} 30%,100%{transform:scaleY(0)}}
+
+.an2 path{stroke-dasharray:36; stroke-dashoffset:36; animation:esq 24s var(--ease) infinite}
+.an2 path:nth-child(2){animation-delay:.1s}
+.an2 path:nth-child(3){animation-delay:.2s}
+.an2 path:nth-child(4){animation-delay:.3s}
+@keyframes esq{0%,33%{stroke-dashoffset:36} 36%,40%{stroke-dashoffset:0} 42%,100%{stroke-dashoffset:36}}
+.an2-h circle{transform-origin:center; transform-box:fill-box; opacity:0;
+  animation:sonar 2.4s var(--ease) infinite}
+.an2-h circle:nth-child(2){animation-delay:8.4s}
+@keyframes sonar{0%{opacity:.9; transform:scale(1)} 60%,100%{opacity:0; transform:scale(5)}}
+
+.an3-h, .an3-s{animation:sube 24s linear infinite}
+@keyframes sube{
+  0%,43%  {transform:translateY(146px); opacity:0}
+  45%     {opacity:1}
+  50%     {transform:translateY(0);     opacity:1}
+  52%,100%{transform:translateY(0);     opacity:0}
+}
+.an3 circle{transform-origin:center; transform-box:fill-box;
+  animation:brota 24s var(--ease) infinite}
+.an3 circle:nth-child(4){animation-delay:.15s}
+@keyframes brota{0%,46%{opacity:0; transform:scale(.3)} 49%,51%{opacity:1; transform:scale(1)} 53%,100%{opacity:0}}
+.an3 rect[stroke-dasharray]{animation:gira 3s linear infinite}
+@keyframes gira{to{stroke-dashoffset:-22}}
+
+/* la etiqueta del canal cambia de texto con el color */
+.an-t{opacity:0; animation:etiqueta 24s steps(1) infinite}
+@keyframes etiqueta{
+  0%,17%  {opacity:0}
+  19%,28% {opacity:1; fill:#5B92D6}
+  30%,32% {opacity:0}
+  34%,40% {opacity:1; fill:#CFA05A}
+  42%,43% {opacity:0}
+  45%,51% {opacity:1; fill:#D4695C}
+  53%,100%{opacity:0}
+}
+
+/* ══ los cuatro colores bajan por la flecha ══ */
+.d-chispas path{
+  stroke-dasharray:14 110; stroke-dashoffset:124; opacity:0;
+  animation:chispa 24s var(--ease) infinite;
+}
+.d-chispas .c2{animation-delay:.22s}
+.d-chispas .c3{animation-delay:.44s}
+.d-chispas .c4{animation-delay:.66s}
+@keyframes chispa{
+  0%,56%  {stroke-dashoffset:124; opacity:0}
+  58%     {opacity:1}
+  68%     {stroke-dashoffset:-14; opacity:1}
+  70%,100%{stroke-dashoffset:-14; opacity:0}
+}
+
+/* ══ lo que aporta la máquina sobre la carcasa ══ */
+.d-nota{opacity:0; transform-box:fill-box; transform-origin:center;
+  animation:nota 24s var(--ease) infinite}
+@keyframes nota{
+  0%,76%  {opacity:0; transform:scale(.6)}
+  80%     {opacity:1; transform:scale(1.16)}
+  83%,92% {opacity:1; transform:scale(1)}
+  97%,100%{opacity:0}
+}
+.d-subs text{opacity:0; animation:sub 24s var(--ease) infinite}
+.d-subs .s2{animation-delay:.12s}
+.d-subs .s3{animation-delay:.24s}
+.d-subs .s4{animation-delay:.36s}
+@keyframes sub{0%,82%{opacity:0; transform:translateY(5px)} 86%,92%{opacity:1; transform:none} 97%,100%{opacity:0}}
+.d-subs text{transform-box:fill-box; transform-origin:center}
+
+.d-cert{opacity:0; animation:cert 24s var(--ease) infinite}
+@keyframes cert{0%,84%{opacity:0; transform:translateY(5px)} 87%,92%{opacity:1; transform:none} 97%,100%{opacity:0}}
+
+.d-ok{opacity:0; transform-origin:248px 392px; animation:okk 24s var(--ease) infinite}
+@keyframes okk{0%,86%{opacity:0; transform:scale(.6)} 89%,92%{opacity:1; transform:scale(1)} 97%,100%{opacity:0}}
+.d-tick{animation:tick 24s var(--ease) infinite}
+@keyframes tick{0%,88%{stroke-dashoffset:24} 90%,92%{stroke-dashoffset:0} 97%,100%{stroke-dashoffset:24}}
+
+/* la carcasa respira una vez dibujada */
+.d-slab{transform-origin:150px 479px; animation:respira 7s ease-in-out 8s infinite}
+@keyframes respira{0%,100%{transform:scale(1)} 50%{transform:scale(1.015)}}
+
+/* ---------- captura de correo ----------
+   Mismo lenguaje que las casillas del código: marco fino que se
+   enciende en verde al escribir, sin relleno ni redondeos. */
+.mail{margin:0}
+.mfield{
+  display:flex; align-items:stretch;
+  border:1px solid rgba(255,255,255,.18);
+  transition:border-color .25s var(--ease);
+}
+.mfield:focus-within{border-color:var(--mint)}
+.mfield input{
+  flex:1; min-width:0; background:none; border:none; color:var(--bone);
+  font-family:var(--display); font-size:14.5px; padding:14px 16px;
+  letter-spacing:.01em;
+}
+.mfield input::placeholder{color:#8E9294}
+.mfield input:focus{outline:none}
+.mfield button{
+  flex-shrink:0; width:52px; background:none; border:none;
+  border-left:1px solid rgba(255,255,255,.18);
+  color:var(--mint); cursor:pointer; display:grid; place-items:center;
+  transition:background .22s, border-color .25s;
+}
+.mfield button svg{width:19px; height:19px; stroke:currentColor; fill:none;
+  stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+  transition:transform .3s var(--ease)}
+.mfield button:hover{background:rgba(97,182,99,.1)}
+.mfield button:hover svg{transform:translateX(3px)}
+.mfield:focus-within button{border-left-color:var(--mint)}
+
+.mfield.err{border-color:#E86A5A; animation:shake .4s var(--ease)}
+.mfield.err button{color:#E86A5A; border-left-color:#E86A5A}
+
+/* al enviar, el campo se sustituye por el acuse */
+.mfield.ok{border-color:var(--mint); background:rgba(97,182,99,.07)}
+.mfield.ok input, .mfield.ok button{opacity:0; pointer-events:none}
+.gate .listo{
+  position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+  gap:9px; font-family:var(--display); font-size:14px; color:var(--mint); font-weight:600;
+}
+.mail{position:relative}
+.mfield.ok ~ .listo, .mail.hecho .listo{display:flex}
+.listo svg{width:17px; height:17px; stroke:var(--mint); fill:none; stroke-width:2.4;
+  stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:26; stroke-dashoffset:26;
+  animation:trazo .5s var(--ease) .15s forwards}
+@keyframes trazo{to{stroke-dashoffset:0}}
+
+
+/* ---------- segunda escena · el instrumental ----------
+   Va al otro lado del bloque. Cuenta CÓMO se mide, mientras la
+   primera cuenta QUÉ sale. Se oculta en pantallas estrechas:
+   con tres columnas el texto perdería sitio. */
+.esc-b svg{width:100%; height:auto; display:block}
+
+/* el trazo a mano se dibuja, escalonado por instrumento */
+.esc-b g[filter] path, .esc-b g[filter] rect, .esc-b g[filter] circle{
+  stroke-dasharray:var(--l,600); stroke-dashoffset:var(--l,600);
+  animation:t_traza 24s var(--ease) infinite;
+}
+@keyframes t_traza{
+  0%      {stroke-dashoffset:var(--l,600)}
+  12%,92% {stroke-dashoffset:0}
+  97%,100%{stroke-dashoffset:var(--l,600)}
+}
+.t-carta  *{animation-delay:.4s}
+.t-calibre *{animation-delay:.9s}
+.t-medida *{animation-delay:1.2s}
+.t-esquina *{animation-delay:1.5s}
+.t-lupa   *{animation-delay:1.8s}
+.t-mango{opacity:0; animation:t_sale 24s var(--ease) 2.2s infinite}
+@keyframes t_sale{0%,10%{opacity:0} 16%,92%{opacity:1} 97%,100%{opacity:0}}
+
+/* ── ultravioleta ── */
+.t-haz{opacity:0; transform-origin:130px 62px; animation:t_haz 24s var(--ease) infinite}
+@keyframes t_haz{
+  0%,14%  {opacity:0; transform:scaleY(.2)}
+  20%,40% {opacity:1; transform:scaleY(1)}
+  46%,100%{opacity:0; transform:scaleY(1)}
+}
+.t-nm{opacity:0; animation:t_apar 24s var(--ease) infinite}
+@keyframes t_apar{0%,16%{opacity:0} 21%,40%{opacity:1} 46%,100%{opacity:0}}
+.t-manchas path, .t-manchas g{opacity:0; transform-origin:center; transform-box:fill-box;
+  animation:t_mancha 24s var(--ease) infinite}
+.t-manchas .m2{animation-delay:.25s}
+.t-manchas .m3{animation-delay:.5s}
+@keyframes t_mancha{
+  0%,20%  {opacity:0; transform:scale(.6)}
+  25%,40% {opacity:.85; transform:scale(1)}
+  46%,100%{opacity:0}
+}
+.t-et text{opacity:0; animation:t_et 24s var(--ease) infinite}
+.t-et .e2{animation-delay:.25s}
+.t-et .e3{animation-delay:.5s}
+@keyframes t_et{0%,23%{opacity:0; transform:translateX(4px)} 28%,40%{opacity:1; transform:none} 46%,100%{opacity:0}}
+
+/* ── pie de rey: la mordaza se cierra ── */
+.t-mordaza{animation:t_cierra 24s var(--ease) infinite}
+@keyframes t_cierra{
+  0%,44%  {transform:translateX(26px)}
+  54%,66% {transform:translateX(0)}
+  72%,100%{transform:translateX(26px)}
+}
+.t-cota path{opacity:0; animation:t_cota 24s var(--ease) infinite}
+.t-cota .c-r{animation-delay:.1s}
+.t-cota .c-ln{opacity:0; transform-origin:left; animation:t_linea 24s var(--ease) infinite}
+@keyframes t_cota{0%,54%{opacity:0} 58%,66%{opacity:1} 72%,100%{opacity:0}}
+@keyframes t_linea{0%,55%{opacity:0; transform:scaleX(0)} 60%,66%{opacity:.6; transform:scaleX(1)} 72%,100%{opacity:0}}
+.t-mm{opacity:0; transform-box:fill-box; transform-origin:center;
+  animation:t_mm 24s var(--ease) infinite}
+@keyframes t_mm{
+  0%,57%  {opacity:0; transform:scale(.7)}
+  61%     {opacity:1; transform:scale(1.12)}
+  64%,66% {opacity:1; transform:scale(1)}
+  72%,100%{opacity:0}
+}
+
+/* ── esquina bajo la lupa ── */
+.t-lupa{transform-origin:134px 446px; animation:t_mueve 9s ease-in-out infinite}
+@keyframes t_mueve{
+  0%,100%{transform:translate(0,0) scale(1)}
+  50%    {transform:translate(-4px,-5px) scale(1.04)}
+}
+.t-angulo path, .t-angulo circle{opacity:0;
+  animation:t_ang 24s var(--ease) infinite}
+.t-angulo .g2{animation-delay:.2s}
+.t-angulo .g3{animation-delay:.4s}
+@keyframes t_ang{0%,70%{opacity:0} 75%,92%{opacity:1} 97%,100%{opacity:0}}
+.t-grados{opacity:0; animation:t_grad 24s var(--ease) infinite}
+@keyframes t_grad{0%,74%{opacity:0; transform:translateY(4px)} 78%,92%{opacity:1; transform:none} 97%,100%{opacity:0}}
+
+/* ── rótulos de cada instrumento ── */
+.t-rot text{opacity:0; animation:t_rot 24s var(--ease) infinite}
+.r1{animation-name:t_r1} .r2{animation-name:t_r2} .r3{animation-name:t_r3}
+@keyframes t_r1{0%,15%{opacity:0} 20%,40%{opacity:1} 46%,100%{opacity:0}}
+@keyframes t_r2{0%,45%{opacity:0} 50%,66%{opacity:1} 72%,100%{opacity:0}}
+@keyframes t_r3{0%,70%{opacity:0} 75%,92%{opacity:1} 97%,100%{opacity:0}}
+@keyframes t_rot{0%,100%{opacity:0}}
+
+/* ---------- las dos escenas se turnan ----------
+   Las dos viven en el mismo hueco. La que no se ve tiene sus
+   animaciones EN PAUSA, no detenidas: al volver a su turno
+   retoma justo donde se quedó. Como ambas duran 24 s y el
+   relevo es cada 24 s, cada una reanuda en el arranque exacto
+   de su propio bucle. */
+.scene{position:relative}
+.esc{transition:opacity 1s var(--ease)}
+.esc-b{position:absolute; inset:0; display:grid; place-items:center;
+  transform:scale(.9); transform-origin:center}
+.esc:not(.on){opacity:0}
+.esc:not(.on) *{animation-play-state:paused !important}
+.esc.on{opacity:1}
+.esc.on *{animation-play-state:running}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important} .scene{display:none} }
+</style>
+</head>
+<body>
+
+
+<div class="glow" aria-hidden="true"></div>
+<div class="glow-2" aria-hidden="true"></div>
+
+
+<main class="card">
+  <span class="logo-hold" id="logoHold">
+  <svg class="logo" viewBox="0 0 84 90" aria-label="Gorilla Grading">
+    <path class="shield" d="M0 12 A8 8 0 0 1 8 4 H60 A8 8 0 0 1 68 12 V46 C68 62 52 74 34 80 C16 74 0 62 0 46 Z" transform="translate(8,4)"/>
+    <!-- La G va dibujada, no como texto: así queda centrada exactamente
+         en el centro óptico del escudo (algo por encima del geométrico,
+         porque el escudo remata en punta abajo). -->
+    <g transform="translate(42,44)">
+      <path d="M13 -9 A15.5 15.5 0 1 0 15.5 3 H2"
+            fill="none" stroke="var(--ink)" stroke-width="7.5"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </svg>
+  </span>
+
+  <h1>GORILLA</h1>
+  <p class="tagline" id="tagline">Grading</p>
+  <div class="rule"></div>
+  <p class="claim">Grading and encapsulation for collectible cards.<br><b>Madrid.</b> Coming soon.</p>
+
+  <div class="gate" style="width:100%; max-width:340px">
+    <p class="gate-lbl">Get notified</p>
+    <form class="mail" id="mail" novalidate>
+      <div class="mfield" id="mfield">
+        <input id="email" type="email" placeholder="your@email.com"
+               autocomplete="email" spellcheck="false" aria-label="Email address">
+        <button type="submit" id="send" aria-label="Subscribe">
+          <svg viewBox="0 0 24 24"><path d="M5 12h13M12 5.5 18.5 12 12 18.5"/></svg>
+        </button>
+      </div>
+      <div class="listo">
+        <svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19.5 7.5"/></svg>
+        <span>You're on the list</span>
+      </div>
+    </form>
+    <div class="msg" id="msg" aria-live="polite"></div>
+  </div>
+
+  <p class="foot">hello@gorillagrading.com</p>
+  <p class="madewith">Made with <span class="heart" aria-label="amor">
+    <svg viewBox="0 0 24 22" role="img" aria-hidden="true">
+      <path fill="#D41A22" d="M12 21S1.8 14.6 1.8 7.9A5.9 5.9 0 0 1 12 4.1a5.9 5.9 0 0 1 10.2 3.8C22.2 14.6 12 21 12 21Z"/>
+    </svg></span> in Madrid &amp; Lisbon</p>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     ESCENA · ANTES Y DESPUÉS
+     Arriba, las cartas sueltas: torcidas, con esquinas dobladas y
+     el garabato de la duda encima. En medio, la flecha, y sobre
+     ella corre el análisis con los cuatro colores. Abajo, la
+     carcasa dibujada con su nota, su certificado y su comprobación.
+     Todo a plumilla; solo la lectura de la máquina va en línea
+     limpia. Ese contraste es el mensaje.
+     ══════════════════════════════════════════════════════════ -->
+<div class="scene" aria-hidden="true">
+<div class="esc esc-a on">
+  <svg viewBox="0 0 300 628" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <filter id="pluma" x="-14%" y="-14%" width="128%" height="128%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="3" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="2.3"
+                           xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <filter id="pluma2" x="-18%" y="-18%" width="136%" height="136%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" seed="23" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="3.4"
+                           xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <linearGradient id="hazG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#D4695C" stop-opacity="0"/>
+        <stop offset="1" stop-color="#D4695C" stop-opacity=".32"/>
+      </linearGradient>
+    </defs>
+
+    <!-- ═════════ ANTES ═════════ -->
+
+    <!-- el garabato de la duda -->
+    <g class="d-duda" fill="none" stroke="#E8E9EA" stroke-width="1.35"
+       stroke-linecap="round" filter="url(#pluma2)" opacity=".9">
+      <path d="M40 46 C25 42 23 25 38 20 C45 7 68 5 77 16 C94 9 109 22 102 35
+               C115 42 111 59 96 56 C88 69 64 69 55 58 C40 62 32 56 40 46 Z"/>
+      <path d="M45 39 C54 28 69 26 80 33 M51 48 C62 37 79 37 90 44
+               M58 30 C67 41 82 43 93 36 M47 30 C60 34 73 27 84 21
+               M64 52 C74 44 86 46 94 50"/>
+      <path d="M70 60 q-5 9 2 14 q7 5 2 11"/>
+    </g>
+    <g class="d-int" font-family="Nunito Sans,sans-serif" font-weight="800" fill="#E8E9EA">
+      <text class="i1" x="128" y="30" font-size="17">?</text>
+      <text class="i2" x="146" y="46" font-size="13" opacity=".7">?</text>
+      <text class="i3" x="120" y="54" font-size="11" opacity=".5">?</text>
+    </g>
+
+    <!-- las cartas sueltas, torcidas -->
+    <g class="d-raw" fill="none" stroke="#E8E9EA" stroke-width="1.6"
+       stroke-linecap="round" stroke-linejoin="round" filter="url(#pluma)">
+      <!-- la de más abajo -->
+      <g transform="rotate(-11 150 180)" opacity=".7">
+        <rect x="112" y="112" width="96" height="134" rx="4"/>
+        <rect x="122" y="122" width="76" height="12" rx="2"/>
+        <rect x="122" y="140" width="76" height="56" rx="2"/>
+      </g>
+      <!-- la de en medio -->
+      <g transform="rotate(7 150 180)" opacity=".85">
+        <rect x="98" y="104" width="96" height="134" rx="4"/>
+        <rect x="108" y="114" width="76" height="12" rx="2"/>
+        <rect x="108" y="132" width="76" height="56" rx="2"/>
+      </g>
+      <!-- la principal, la que se analiza -->
+      <g class="d-main">
+        <rect x="88" y="94" width="104" height="146" rx="4" stroke-width="1.9"/>
+        <rect x="98" y="104" width="84" height="13" rx="2"/>
+        <rect x="98" y="124" width="84" height="60" rx="2"/>
+        <circle cx="140" cy="154" r="18"/>
+        <path d="M104 184 L122 152 L136 172 L152 146 L176 184 Z"/>
+        <g stroke-width=".7" opacity=".45">
+          <path d="M101 130 L179 178 M101 144 L179 192 M179 130 L101 178"/>
+        </g>
+        <rect x="98" y="192" width="84" height="12" rx="2"/>
+        <path d="M104 214 h64 M104 222 h72 M104 230 h54"/>
+        <!-- esquina doblada y roce en el borde -->
+        <path d="M172 94 l14 14 M186 94 l-14 14" stroke-width="1.3"/>
+        <path d="M92 228 q9 -5 15 2" stroke-width="1.2" opacity=".85"/>
+      </g>
+    </g>
+
+    <!-- ── el análisis, encima de la carta ── -->
+    <g class="an">
+      <!-- centrado -->
+      <g class="an1" fill="none" stroke="#5B92D6" opacity="0">
+        <line class="an1-s" x1="88" y1="94" x2="192" y2="94" stroke-width="1.6"/>
+        <line class="an1-v" x1="140" y1="94" x2="140" y2="240" stroke-width=".8"
+              stroke-dasharray="3 4" opacity=".6"/>
+        <g stroke-width="1.3"><path d="M88 167 h11"/><path d="M181 167 h11"/></g>
+        <g font-family="JetBrains Mono,monospace" font-size="9" fill="#5B92D6" stroke="none">
+          <text x="78" y="162" text-anchor="end">2.41</text>
+          <text x="202" y="162">2.58</text>
+        </g>
+      </g>
+      <!-- esquinas -->
+      <g class="an2" fill="none" stroke="#CFA05A" opacity="0">
+        <g stroke-width="1.6">
+          <path d="M88 110 V94 H104"/><path d="M176 94 H192 V110"/>
+          <path d="M192 224 V240 H176"/><path d="M104 240 H88 V224"/>
+        </g>
+        <g class="an2-h" stroke-width="1">
+          <circle cx="192" cy="94" r="3"/><circle cx="88" cy="240" r="3"/>
+        </g>
+      </g>
+      <!-- superficie -->
+      <g class="an3" fill="none" stroke="#D4695C" opacity="0">
+        <rect class="an3-h" x="88" y="94" width="104" height="30" fill="url(#hazG)" stroke="none"/>
+        <line class="an3-s" x1="88" y1="94" x2="192" y2="94" stroke-width="1.6"/>
+        <g stroke-width="1.2">
+          <circle cx="178" cy="102" r="9"/>
+          <circle cx="97" cy="228" r="7"/>
+        </g>
+        <g stroke-width=".9" stroke-dasharray="3 2.5">
+          <rect x="166" y="90" width="24" height="24"/>
+        </g>
+      </g>
+      <!-- etiqueta del canal activo -->
+      <text class="an-t" x="150" y="262" text-anchor="middle"
+            font-family="Nunito Sans,sans-serif" font-size="11" font-weight="700"
+            letter-spacing="2.4" fill="#5B92D6">CENTERING</text>
+    </g>
+
+    <!-- ═════════ LA FLECHA ═════════ -->
+    <g class="d-flecha" fill="none" stroke="#61B663" stroke-linecap="round"
+       stroke-linejoin="round" filter="url(#pluma2)">
+      <path class="f1" d="M150 280 C136 300 138 322 150 340" stroke-width="3.4"/>
+      <path class="f2" d="M132 322 L151 346 L170 324" stroke-width="3.4"/>
+      <path class="f3" d="M156 282 C144 302 145 322 155 338" stroke-width="2" opacity=".5"/>
+    </g>
+    <!-- los cuatro colores recorren la flecha -->
+    <g class="d-chispas" fill="none" stroke-width="2.6" stroke-linecap="round">
+      <path class="c1" d="M150 280 C136 300 138 322 150 340" stroke="#5B92D6"/>
+      <path class="c2" d="M150 280 C136 300 138 322 150 340" stroke="#CFA05A"/>
+      <path class="c3" d="M150 280 C136 300 138 322 150 340" stroke="#D4695C"/>
+      <path class="c4" d="M150 280 C136 300 138 322 150 340" stroke="#61B663"/>
+    </g>
+
+    <!-- ═════════ DESPUÉS ═════════ -->
+    <g class="d-slab" fill="none" stroke="#E8E9EA" stroke-width="1.7"
+       stroke-linecap="round" stroke-linejoin="round" filter="url(#pluma)">
+      <rect x="66" y="364" width="168" height="230" rx="8" stroke-width="2.2"/>
+      <rect x="73" y="371" width="154" height="216" rx="6" stroke-width=".8" opacity=".45"/>
+      <rect x="82" y="378" width="136" height="32" rx="4" stroke-width="1.8"/>
+      <g stroke-width=".75" opacity=".4">
+        <path d="M82 386 L112 410 M94 378 L124 410 M106 378 L136 410 M118 378 L148 410
+                 M130 378 L160 410 M142 378 L172 410 M154 378 L184 410 M166 378 L196 410
+                 M178 378 L208 410 M190 378 L218 406 M202 378 L218 394"/>
+      </g>
+      <!-- la carta dentro, ya limpia -->
+      <rect x="92" y="424" width="116" height="152" rx="4" stroke-width="1.5"/>
+      <rect x="101" y="433" width="98" height="13" rx="2"/>
+      <rect x="101" y="452" width="98" height="62" rx="2"/>
+      <circle cx="150" cy="483" r="18"/>
+      <path d="M108 514 L126 482 L140 502 L156 476 L182 514 Z"/>
+      <g stroke-width=".7" opacity=".4">
+        <path d="M104 458 L196 508 M104 474 L196 524 M196 458 L104 508"/>
+      </g>
+      <rect x="101" y="522" width="98" height="12" rx="2"/>
+      <path d="M107 546 h74 M107 556 h86 M107 566 h62"/>
+      <!-- marcas de medición, trazadas a mano -->
+      <g class="d-cotas" stroke-width="1" opacity=".75">
+        <path d="M82 500 h10"/><path d="M208 500 h10"/>
+        <path d="M150 424 v-9"/><path d="M150 576 v9"/>
+      </g>
+    </g>
+
+    <!-- lo que aporta la máquina sobre la carcasa -->
+    <text class="d-nota" x="150" y="401" text-anchor="middle"
+          font-family="Nunito Sans,sans-serif" font-size="18" font-weight="800" fill="#61B663">MINT 9</text>
+    <g class="d-subs" font-family="JetBrains Mono,monospace" font-size="9" stroke="none">
+      <text class="s1" x="26"  y="616" fill="#5B92D6">CEN 9.5</text>
+      <text class="s2" x="94"  y="616" fill="#CFA05A">COR 9.0</text>
+      <text class="s3" x="162" y="616" fill="#D4695C">SUR 9.0</text>
+      <text class="s4" x="230" y="616" fill="#61B663">EDG 9.5</text>
+    </g>
+    <g class="d-cert">
+      <text x="150" y="352" text-anchor="middle" font-family="JetBrains Mono,monospace"
+            font-size="12" fill="#61B663" letter-spacing=".5">0092-4471-6</text>
+    </g>
+    <g class="d-ok">
+      <circle cx="248" cy="392" r="13" fill="none" stroke="#61B663" stroke-width="1.7"/>
+      <path class="d-tick" d="M241 392 l5 5 l9 -11" fill="none" stroke="#61B663"
+            stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"
+            stroke-dasharray="24" stroke-dashoffset="24"/>
+    </g>
+  </svg>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SEGUNDA ESCENA · EL INSTRUMENTAL
+     Al otro lado del bloque. Cuenta cómo se mide, no qué sale:
+     el pie de rey cerrándose sobre la carta, la lámpara de
+     ultravioleta barriéndola y la lupa sobre una esquina.
+     Mismo trazo a plumilla y las mismas tintas.
+     ══════════════════════════════════════════════════════════ -->
+<div class="esc esc-b" aria-hidden="true">
+  <svg viewBox="0 0 260 620" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <filter id="pluma-b" x="-14%" y="-14%" width="128%" height="128%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="11" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="2.3"
+                           xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+    <!-- ═══ LÁMPARA DE ULTRAVIOLETA ═══ -->
+    <g class="t-lampara" fill="none" stroke="#E8E9EA" stroke-width="1.7"
+       stroke-linecap="round" stroke-linejoin="round" filter="url(#pluma-b)">
+      <path d="M130 18 v20"/>
+      <rect x="66" y="38" width="128" height="22" rx="4" stroke-width="2"/>
+      <path d="M78 60 h104" stroke-width="2.6"/>
+      <g stroke-width=".7" opacity=".4">
+        <path d="M70 44 L84 60 M82 40 L96 60 M94 40 L108 60 M106 40 L120 60
+                 M118 40 L132 60 M130 40 L144 60 M142 40 L156 60 M154 40 L168 60
+                 M166 40 L180 60 M178 40 L190 56"/>
+      </g>
+    </g>
+    <!-- el haz -->
+    <g class="t-haz">
+      <path d="M78 62 L52 196 L208 196 L182 62 Z" fill="#D4695C" opacity=".1"/>
+      <path d="M78 62 L52 196 M182 62 L208 196" stroke="#D4695C" stroke-width=".9"
+            fill="none" opacity=".55"/>
+    </g>
+    <text class="t-nm" x="130" y="12" text-anchor="middle"
+          font-family="JetBrains Mono,monospace" font-size="9" fill="#D4695C">365 nm</text>
+    <!-- ═══ LA CARTA BAJO LA LÁMPARA ═══ -->
+    <g class="t-carta" fill="none" stroke="#E8E9EA" stroke-width="1.6"
+       stroke-linecap="round" stroke-linejoin="round" filter="url(#pluma-b)">
+      <rect x="82" y="86" width="96" height="134" rx="4" stroke-width="1.9"/>
+      <rect x="91" y="95" width="78" height="12" rx="2"/>
+      <rect x="91" y="113" width="78" height="54" rx="2"/>
+      <circle cx="130" cy="140" r="16"/>
+      <g stroke-width=".7" opacity=".45">
+        <path d="M94 118 L166 162 M94 132 L166 176 M166 118 L94 162"/>
+      </g>
+      <rect x="91" y="175" width="78" height="11" rx="2"/>
+      <path d="M96 196 h58 M96 204 h66 M96 212 h48"/>
+    </g>
+    <!-- lo que delata el ultravioleta -->
+    <g class="t-manchas" fill="none" stroke="#D4695C">
+      <path class="m1" d="M100 122 q18 -9 32 3 q13 10 6 20 q-9 13 -26 8 q-18 -6 -18 -18 q0 -9 6 -13 Z"
+            stroke-width="1.3" opacity=".85"/>
+      <path class="m2" d="M150 180 q11 -5 18 2 q7 7 1 13 q-8 7 -16 2 q-7 -5 -3 -13 Z"
+            stroke-width="1.3" opacity=".85"/>
+      <g class="m3" stroke-width="1" opacity=".75">
+        <path d="M104 156 q7 -10 15 -3 q7 6 2 14"/>
+        <path d="M100 160 q10 -15 21 -5 q10 9 4 20"/>
+      </g>
+    </g>
+    <g class="t-et" font-family="JetBrains Mono,monospace" font-size="8" fill="#D4695C">
+      <text class="e1" x="232" y="132" text-anchor="end">retouch</text>
+      <text class="e2" x="232" y="192" text-anchor="end">adhesive</text>
+      <text class="e3" x="34"  y="166">fingerprint</text>
+    </g>
+    <!-- ═══ PIE DE REY ═══ -->
+    <g class="t-calibre" fill="none" stroke="#E8E9EA" stroke-width="1.7"
+       stroke-linecap="round" stroke-linejoin="round" filter="url(#pluma-b)">
+      <!-- regla -->
+      <rect x="40" y="290" width="184" height="18" rx="2" stroke-width="1.9"/>
+      <g stroke-width=".8" opacity=".55">
+        <path d="M52 290 v7 M64 290 v10 M76 290 v7 M88 290 v10 M100 290 v7
+                 M112 290 v10 M124 290 v7 M136 290 v10 M148 290 v7 M160 290 v10
+                 M172 290 v7 M184 290 v10 M196 290 v7 M208 290 v10"/>
+      </g>
+      <!-- mordaza fija -->
+      <path d="M40 290 v-46 h13 v46" stroke-width="1.9"/>
+      <!-- mordaza móvil -->
+      <g class="t-mordaza">
+        <path d="M188 290 v-46 h13 v46" stroke-width="1.9"/>
+        <rect x="182" y="290" width="25" height="30" rx="2"/>
+        <g stroke-width=".8" opacity=".5">
+          <path d="M188 308 v7 M194 308 v9 M200 308 v7"/>
+        </g>
+      </g>
+    </g>
+    <!-- la carta que se mide -->
+    <g class="t-medida" fill="none" stroke="#E8E9EA" stroke-width="1.5"
+       stroke-linecap="round" filter="url(#pluma-b)">
+      <rect x="62" y="250" width="120" height="38" rx="3"/>
+    </g>
+    <g class="t-cota" stroke="#5B92D6" fill="none">
+      <path class="c-l" d="M53 268 h9" stroke-width="1.4"/>
+      <path class="c-r" d="M179 268 h9" stroke-width="1.4"/>
+      <line class="c-ln" x1="57" y1="268" x2="184" y2="268" stroke-width=".8" stroke-dasharray="3 3" opacity=".6"/>
+    </g>
+    <text class="t-mm" x="130" y="336" text-anchor="middle"
+          font-family="JetBrains Mono,monospace" font-size="11" fill="#5B92D6">63.04 mm</text>
+    <!-- ═══ LUPA SOBRE UNA ESQUINA ═══ -->
+    <g class="t-esquina" fill="none" stroke="#E8E9EA" stroke-width="1.7"
+       stroke-linecap="round" stroke-linejoin="round" filter="url(#pluma-b)">
+      <path d="M60 480 v-84 h96"/>
+      <path d="M68 480 v-76 h80" stroke-width=".8" opacity=".45"/>
+    </g>
+    <g class="t-lupa" fill="none" stroke="#E8E9EA" stroke-linecap="round" filter="url(#pluma-b)">
+      <circle cx="134" cy="446" r="54" stroke-width="2.6"/>
+      <circle cx="134" cy="446" r="60" stroke-width=".9" opacity=".4"/>
+      <path d="M174 486 L218 534" stroke-width="7"/>
+    </g>
+    <path class="t-mango" d="M174 486 L218 534" fill="none" stroke="#454545"
+          stroke-width="2.8" stroke-linecap="round"/>
+    <!-- dentro: el ángulo medido -->
+    <g class="t-angulo" fill="none" stroke="#CFA05A">
+      <path class="g1" d="M104 470 v-30 h34" stroke-width="1.8"/>
+      <path class="g2" d="M104 452 a18 18 0 0 1 18 -18" stroke-width="1" opacity=".7"/>
+      <circle class="g3" cx="104" cy="440" r="3" fill="#CFA05A" stroke="none"/>
+    </g>
+    <text class="t-grados" x="150" y="458" font-family="JetBrains Mono,monospace"
+          font-size="9" fill="#CFA05A">89.94°</text>
+    <!-- ═══ RÓTULOS ═══ -->
+    <g class="t-rot" font-family="Nunito Sans,sans-serif" font-size="10"
+       font-weight="700" letter-spacing="2" text-anchor="middle">
+      <text class="r1" x="130" y="242" fill="#D4695C">ULTRAVIOLET</text>
+      <text class="r2" x="130" y="364" fill="#5B92D6">CALIPER</text>
+      <text class="r3" x="130" y="546" fill="#CFA05A">CORNER</text>
+    </g>
+  </svg>
+</div>
+
+
+</div>
+
+
+<script>
+/* ============================================================
+   CAPTURA DE CORREO
+
+   IMPORTANTE — dónde acaban los correos
+   -------------------------------------
+  FormSubmit recibe el envío y reenvía cada registro a la
+  dirección configurada en DESTINO.
+
+   La primera vez, FormSubmit enviará un correo de confirmación
+   a la dirección receptora. Hay que confirmarlo para activar
+   la recepción de registros.
+   ============================================================ */
+
+const DESTINO = "https://formsubmit.co/ajax/duvidenublada@gmail.com";
+
+const form   = document.getElementById("mail");
+const campo  = document.getElementById("email");
+const marco  = document.getElementById("mfield");
+const msg    = document.getElementById("msg");
+let enviando = false;
+
+const VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function fallo(texto){
+  marco.classList.remove("err");
+  void marco.offsetWidth;            // reinicia la animación
+  marco.classList.add("err");
+  msg.className = "msg err";
+  msg.textContent = texto;
+  campo.focus();
+}
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  if(enviando) return;
+
+  const valor = campo.value.trim();
+  if(!valor)          return fallo("enter your email");
+  if(!VALIDO.test(valor)) return fallo("that doesn't look like an email");
+
+  enviando = true;
+  msg.className = "msg";
+  msg.textContent = "sending…";
+
+  try{
+    const r = await fetch(DESTINO, {
+      method: "POST",
+      headers: {"Content-Type":"application/json", "Accept":"application/json"},
+      body: JSON.stringify({
+        email: valor,
+        source: "coming-soon",
+        _subject: "Nuevo registro · Gorilla Grading"
+      })
+    });
+    if(!r.ok) throw new Error(r.status);
+
+    marco.classList.add("ok");
+    form.classList.add("hecho");
+    msg.className = "msg ok";
+    msg.textContent = "we'll email you when we open";
+  }catch(err){
+    enviando = false;
+    fallo("something went wrong · try again");
+  }
+});
+
+campo.addEventListener("input", () => {
+  marco.classList.remove("err");
+  if(msg.textContent && !enviando){ msg.className = "msg"; msg.textContent = ""; }
+});
+
+campo.focus();
+
+/* ============================================================
+   MOVIMIENTO
+   ============================================================ */
+const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+if(!reduce){
+  /* la tagline entra letra a letra */
+  const tag = document.getElementById("tagline");
+  if(tag){
+    const txt = tag.textContent.trim();
+    tag.innerHTML = [...txt].map((c,i) =>
+      `<span style="animation-delay:${360 + i*55}ms">${c}</span>`).join("");
+  }
+
+  /* el escudo se inclina siguiendo el cursor */
+  const hold = document.getElementById("logoHold");
+  if(hold){
+    let raf;
+    addEventListener("pointermove", e => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const px = (e.clientX / innerWidth  - .5);
+        const py = (e.clientY / innerHeight - .5);
+        hold.style.transform =
+          `perspective(700px) rotateY(${px * 16}deg) rotateX(${-py * 12}deg)`;
+      });
+    });
+    addEventListener("pointerleave", () => hold.style.transform = "");
+  }
+
+  /* el campo entra un punto después que el texto */
+  const mf = document.getElementById("mfield");
+  if(mf) mf.style.animation = "rise .6s var(--ease) 440ms backwards";
+}
+/* ============================================================
+   ESCENA A PLUMILLA · longitud de cada trazo
+   El dibujado se hace con stroke-dasharray. Para que cada línea
+   se trace entera hace falta su longitud real: la pide el propio
+   navegador con getTotalLength(), en vez de estimarla.
+   ============================================================ */
+(function(){
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  document.querySelectorAll(".scene svg").forEach(svg => {
+
+  svg.querySelectorAll("g[filter] path, g[filter] rect, g[filter] circle").forEach(el => {
+    let L;
+    try{ L = el.getTotalLength(); }catch(e){ L = 0; }
+    if(!L || !isFinite(L)){
+      // rect y circle no siempre responden: se calcula a mano
+      if(el.tagName === "rect"){
+        const w = +el.getAttribute("width") || 0, h = +el.getAttribute("height") || 0;
+        L = 2*(w+h);
+      }else if(el.tagName === "circle"){
+        L = 2 * Math.PI * (+el.getAttribute("r") || 0);
+      }else{
+        L = 600;
+      }
+    }
+    el.style.setProperty("--l", Math.ceil(L + 2));
+  });
+  });
+})();
+
+/* ============================================================
+   RELEVO ENTRE LAS DOS ESCENAS
+   Cada 24 s cambia el turno. La que sale se queda en pausa, así
+   que al volver arranca limpia en vez de aparecer a mitad.
+   ============================================================ */
+(function(){
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches) return;
+  const escenas = [...document.querySelectorAll(".scene .esc")];
+  if(escenas.length < 2) return;
+  let i = 0;
+  setInterval(() => {
+    escenas[i].classList.remove("on");
+    i = (i + 1) % escenas.length;
+    escenas[i].classList.add("on");
+  }, 24000);
+})();
+
+</script>
+</body>
+</html>
