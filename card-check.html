@@ -38,26 +38,26 @@ body {
   -webkit-font-smoothing: antialiased;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
-  padding: 28px;
+  padding: 20px;
 }
 
 .container {
   width: 100%;
-  max-width: 540px;
+  max-width: 520px;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 28px;
   animation: fadeInDown .6s var(--ease) backwards;
 }
 
 .logo-mark {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 24px;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 18px;
   display: block;
 }
 
@@ -70,8 +70,8 @@ h1 {
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -.025em;
-  margin: 0 0 8px;
-  line-height: 1.2;
+  margin: 0 0 6px;
+  line-height: 1.1;
 }
 
 h1 .highlight {
@@ -90,37 +90,68 @@ h1 .highlight {
 }
 
 .description {
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: #B8BCBE;
-  line-height: 1.6;
-  margin: 20px 0 0;
+  line-height: 1.5;
+  margin: 14px 0 0;
   font-weight: 400;
 }
 
 .price-box {
-  display: flex;
-  gap: 12px;
-  margin: 32px 0;
+  display: block;
+  margin: 24px 0;
   padding: 20px;
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 8px;
-  align-items: center;
-}
-
-.price-item {
-  flex: 1;
-  padding: 16px;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 6px;
   background: rgba(255,255,255,.02);
 }
 
+.price-item {
+  margin-bottom: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.price-item:first-child {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+}
+
+.price-item:first-child > :nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.price-item:first-child > :nth-child(2) {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+
+.price-item:first-child > :nth-child(3) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.price-item:last-child {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.1);
+  flex-direction: row;
+}
+
+.price-item:last-child .price-label {
+  flex-shrink: 0;
+}
+
 .price-label {
-  font-size: 11px;
-  color: #8E9294;
-  text-transform: uppercase;
-  letter-spacing: .16em;
-  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--bone);
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
   font-weight: 600;
 }
 
@@ -129,12 +160,15 @@ h1 .highlight {
   font-weight: 800;
   color: var(--mint);
   margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .price-desc {
   font-size: 12px;
-  color: var(--dim);
-  margin: 4px 0 0;
+  color: #A8ACAE;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
 }
 
 .form-section {
@@ -148,12 +182,12 @@ h1 .highlight {
 .form-title {
   font-size: 18px;
   font-weight: 700;
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   letter-spacing: -.01em;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .form-group:last-of-type {
@@ -178,9 +212,9 @@ h1 .highlight {
   border-radius: 6px;
   color: var(--bone);
   font-family: var(--display);
-  font-size: 14.5px;
+  font-size: 14px;
   transition: all .25s var(--ease);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .form-input::placeholder {
@@ -197,17 +231,17 @@ h1 .highlight {
 .checkbox-group {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 18px;
   font-size: 13px;
   color: #B8BCBE;
 }
 
 .checkbox-input {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  margin-top: 3px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  margin-top: 0px;
   cursor: pointer;
   accent-color: var(--mint);
 }
@@ -232,23 +266,27 @@ h1 .highlight {
 }
 
 .form-buttons {
-  margin-top: 28px;
+  margin-top: 24px;
   display: flex;
   gap: 12px;
 }
 
 .btn {
   flex: 1;
-  padding: 16px;
+  padding: 16px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-family: var(--display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 14.5px;
   cursor: pointer;
   transition: all .25s var(--ease);
   text-transform: none;
   letter-spacing: -.01em;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-primary {
@@ -258,8 +296,9 @@ h1 .highlight {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #89db7f;
-  transform: translateY(-2px);
+  background: #7dd66f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(97, 182, 99, .2);
 }
 
 .btn-primary:disabled {
@@ -397,9 +436,8 @@ h1 .highlight {
       <p class="price-desc">Condition report by email</p>
     </div>
     <div class="price-item">
-      <p class="price-label">+ Grading</p>
-      <p class="price-amount">+€10</p>
-      <p class="price-desc">Ready in 48 h</p>
+      <p class="price-label">+€10</p>
+      <p class="price-desc">Grade and encapsulate by adding +€10 to your Card Check. Ready in 48 h.</p>
     </div>
   </div>
 
